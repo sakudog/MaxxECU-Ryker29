@@ -1,0 +1,13 @@
+{
+  "name": "maxxecu-tuning",
+  "displayName": "MaxxECU MTune Log, Calibration & 8HP Analyzer",
+  "version": "1.1.0",
+  "logo": "assets/logo.svg",
+  "description": "Parse MaxxECU MTune datalogs (.MaxxECU-Zip-log, .MaxxECU-log, .maxxlog, .csv) and calibration files (.MaxxECU-save) natively on Windows to compute steady-state VE corrections, generate XML-verified .MaxxECU-save revisions, and audit fuel, ignition, knock, cold-start warmup, DBW idle & Fan-by-VSS curves, Cruise Control PID, and Dodge 8HP70/8HP90 CAN shift/torque setups.",
+  "suggestedPrompts": [
+    "Review this MaxxECU MTune datalog and give me VE table and tuning recommendations",
+    "Audit my .MaxxECU-save tune file for fueling, spark, DBW idle, and safety limits",
+    "Review my Dodge 8HP70/8HP90 shift tables, torque model, and WOT shift cuts",
+    "Analyze my cold-start warmup log, DBW idle behavior, and Cruise Control PID"
+  ]
+}
