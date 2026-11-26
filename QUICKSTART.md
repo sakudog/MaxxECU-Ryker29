@@ -1,6 +1,6 @@
-# Quick Start Guide — MaxxECU + LS / Dodge 8HP Tuning Co-Pilot
+# Quick Start Guide — Universal MaxxECU Tuning Co-Pilot
 
-This guide walks you step-by-step through installing the plugin, using every included tool, capturing clean logs in MTune, and iteratively tuning your MaxxECU + LS / 8HP build safely.
+This guide walks you step-by-step through installing the plugin, using every included tool, supplying your vehicle configuration profile (whether you're tuning a **single-turbo 2JZ-GTE Toyota Supra**, an **LS-swapped OBS truck**, a **K-series**, or a **BMW**), and tuning safely one step at a time.
 
 ---
 
@@ -101,41 +101,46 @@ Whenever the agent builds a new `.MaxxECU-save` revision (e.g., `V1` → `V2`):
 
 ## 3. Copy-Paste Starter Prompt (Your First Session)
 
-Start a new Antigravity chat, attach your current `.MaxxECU-save` and baseline `.MaxxECU-Zip-log`, and paste this filled-in prompt:
+Start a new Antigravity chat, attach your current `.MaxxECU-save` and baseline `.MaxxECU-Zip-log`, and paste the filled-in configuration blocks below (see **[VEHICLE_PROFILE.md](./VEHICLE_PROFILE.md)** for complete filled-in **Toyota Supra 2JZ-GTE** and **LS-Swapped OBS Truck** examples):
 
-> Use the `maxxecu-mtune-tuning` skill to audit my attached `.MaxxECU-save` calibration and `.MaxxECU-Zip-log` datalog.
+> Use the `maxxecu-mtune-tuning` skill to audit my attached `.MaxxECU-save` calibration and `.MaxxECU-Zip-log` datalog, cross-checking my physical build against my MTune settings first.
 >
 > **My Build Profile:**
-> - **Vehicle & Weight:** [e.g., '99 Silverado / C10 / Camaro, 3,900 lbs w/ driver]
-> - **Engine:** [e.g., 6.0L / 6.2L LS, bore/stroke, compression ratio, heads, intake, TB size (DBW or cable)]
-> - **Camshaft:** [e.g., specs @ .050", lift, LSA]
-> - **Fuel System:** [e.g., injector model & cc/min @ 3 bar, fuel pump, fuel grade / E85, dual or single wideband]
-> - **Exhaust:** [e.g., 1-7/8" long-tube headers, catalytic converters or catless]
-> - **Transmission & Driveline:** [e.g., Dodge 8HP70 / 8HP90, converter stall RPM, rear gear ratio]
-> - **Thermostat & Full-Warmup Rule:** [e.g., 190°F thermostat; treat vehicle as fully warmed up once `CLT >= 80°C` AND `Transmission Oil Temp >= 120°F`]
+> - **Vehicle & Weight:** [e.g., 1994 Toyota Supra MK4 (3,550 lbs) / 1997 LS-Swapped OBS Truck (3,900 lbs)]
+> - **Engine Configuration:** [displacement, cyl count, NA vs. turbo/SC & target psi, bore/stroke, CR, cams, heads, intake, DBW vs. cable TB + IACV, redline]
+> - **Fuel System Configuration:** [fuel octane / E85 / Flex Fuel sensor?, injector model & cc/min @ 3 bar, pump(s), base pressure & 1:1 referenced vs. fixed returnless, fuel pressure sensor?, single vs. dual wideband]
+> - **Exhaust System Configuration:** [turbo manifold/downpipe vs. headers, high-flow/OEM cats vs. catless, wideband sensor placement]
+> - **Transmission:** [Manual + clutch type OR Dodge/BMW 8HP / 4L80E / DCT / DSG + converter stall RPM]
+> - **Rear Gear & Tire Size:** [e.g., 3.13 / 3.23 / 3.73 rear gear, rear tire diameter]
+> - **Fan Type & Electrical Loads:** [**PWM soft-start** vs. **On/Off Relay-switched** (single/dual), A/C active?, alternator amps, thermostat temp, full-warmup rule (e.g., `CLT >= 80°C` + `Oil/Trans >= 120°F`)]
 >
 > **Goals:**
-> 1. Run a safety & calibration audit first (flag any typos, protection gaps, knock, lean WOT, fuel pressure, or dual-bank imbalance).
-> 2. Build a step-by-step street tuning roadmap (VE → Spark/Knock → Accel Enrichment → DBW Idle & Fan Control → Cold-Start Warmup → Dodge 8HP70/8HP90 → Cruise Control PID).
+> 1. Cross-check my physical profile against `.MaxxECU-save` and flag any mismatches or safety issues first.
+> 2. Build a step-by-step street/dyno tuning roadmap tailored to my exact hardware.
 > 3. Generate uploadable `.MaxxECU-save` revisions one clean step at a time, with a verified exact XML diff before I flash.
 > 4. *(Optional)* Create a Google Sheet workbook and log every revision and cell change as we go.
 
 ---
 
-## 4. Recommended 6-Step Street Tuning Order
+## 4. Recommended 6-Step Tuning Order (Adapts to NA, Turbo, Manual, or Auto)
 
 Follow this order — changing **1–2 related areas per log** keeps every test clean and reversible:
 
-1. **Step 1 — Safety & Baseline Glitches:** Verify injector deadtimes, `Multiply Lambda = 1`, `Lambdareg MinCLT` (`50°C` recommended so O2 doesn't fight cold warmup), IAT correction smoothness, knock bore size, fuel pressure stability, and safety cuts (`LeanPowerCut`, `RevLimit`, `OilPressureCut`).
-2. **Step 2 — Steady-State `VE Table 1` (Full Warmup Only):** Drive normal street, highway, and light/medium hills once fully warmed up (`CLT >= 80°C` and `Trans/Oil Temp >= 120°F`). Apply damped corrections (`50–75%`) until driven cells converge inside **±2–3%** with closed-loop trims near `0%` and dual-bank split `< 2%`. Blend unvisited perimeter cells smoothly.
-3. **Step 3 — Spark/Knock & Accel Enrichment:** Eliminate any part-load or lugging knock first, verify WOT knock = `0°`, then dial tip-in `AccEnrichment Table` & `MinTpsDot` so quick throttle stabs don't lean-stumble or bog overly rich.
-4. **Step 4 — DBW Idle, Electric Fans & Cold-Start Warmup:**
-   - Dial hot Park & Drive idle (`Idle OpenloopDutyTable`, `Idle closedloop Min Pos`, `deadband`) so hot spark sits comfortably around `14–18°` with smooth stops.
-   - If hot restarts flare `> 1,800 RPM` when cooling fans kick on immediately, check **`RadiatorFan Delay`** (`8–10 s` lets the engine settle before fans engage).
-   - If high `Idle RadFan Duty Up` is needed at `0 mph` to catch fan/alternator inrush without stalling, use **`IdleCtrl User Duty Adjust`** (`VSS × Fan 1`) to smoothly scale that fan duty down to `0%` by `15–20 mph` while keeping `Idle closedloop Disable Spd` safely enabled.
-   - Capture a true overnight **cold-start log** (checklist below) to polish `Fuel Warmup Table` (`15–60°C`, **always keeping the rightmost warm breakpoint at `0%`**!).
-5. **Step 5 — Dodge 8HP70 / 8HP90 Audit:** Review `Dodge 8HP Engine Torque [901]` vs. `Fuel Flow Engine Torque [1615]`, add cat-safe **positive** ignition retard in `Shiftcut Retard Angle` at high load (`≥ 63 kPa`) so WOT upshifts honor TCU torque cuts, verify high-load holding torque in `Dodge 8HP Torque Adjust`, and align WOT `Dodge 8HP Shift Target Table` RPMs to your cam's powerband and 8HP gear ratio drops.
-6. **Step 6 — Final Failsafes & Cruise Control PID:** Once VE is locked in, tighten `Lambda min/max corr` (especially under high load/WOT so a failed wideband can never lean out the motor), and tune `Cruise PID P / I / D` + `Cruise MaxTPS` against logged `SET` engagements.
+1. **Step 1 — Profile Validation & Baseline Safety:** Cross-check `Engine Cylcount`/`Volume`, `KnockCtrl Diameter` (bore mm), injector deadtimes, `Multiply Lambda = 1`, `Fuel pressureadj`, `Lambdareg MinCLT` (`50°C` recommended), IAT correction smoothness, Flex Fuel config, and protection cuts (`LeanPowerCut`, `BoostCut`, `RevLimit`, `OilPressureCut`).
+2. **Step 2 — Steady-State `VE Table 1` (Full Warmup Only):** Drive normal street, highway, and steady load once fully warmed up (`CLT >= 80°C` plus oil/trans warmup). Apply damped corrections (`50–75%`) until driven cells converge inside **±2–3%** with closed-loop trims near `0%` and dual-bank split `< 2%`. Blend unvisited perimeter cells smoothly.
+3. **Step 3 — WOT Fueling, Boost Control (if Forced Induction), Spark/Knock & Accel Enrichment:**
+   - **NA or Boosted:** Verify fuel pressure tracks `1:1` (or flat differential), IDC stays `< 80%`, and zero knock across part-load and WOT pulls.
+   - **Turbo / Supercharged:** Dial closed-loop boost target vs. actual MAP, WGDC headroom (`< 85–90%`), IAT timing retard, and E85 Flex Fuel blend tables.
+   - **Transients:** Dial `AccEnrichment Table` & `MinTpsDot` so quick throttle stabs have crisp response without lean stumbles or rich bog.
+4. **Step 4 — Idle, Fan Control (PWM vs. Relay) & Cold-Start Warmup:**
+   - Dial hot idle (`Idle OpenloopDutyTable`, `Idle closedloop Min Pos`, `deadband`, DBW or cable IACV) so hot idle spark sits comfortably around `12–18°`.
+   - **Relay-Switched High-Draw Fans:** Protect `0 mph` idle against voltage inrush dips (`Idle RadFan Duty Up`), set `RadiatorFan Delay` (`8–10 s`) to prevent hot-restart flares, and scale rolling fan duty down via `IdleCtrl User Duty Adjust` (`VSS × Fan`) so closed-loop `I` doesn't wind deeply negative while moving.
+   - **PWM Soft-Start Fans:** Verify smooth `Radiatorfan PWM` ramp and keep `Idle RadFan Duty Up` modest (`~10–15%`).
+   - Capture an overnight **cold-start log** (checklist below) to dial `Fuel Warmup Table` (**always keeping the rightmost warm cell at `0%`**!).
+5. **Step 5 — Transmission-Specific Optimization:**
+   - **Dodge / BMW 8HP (or CAN Auto):** Cross-check `Dodge 8HP Engine Torque [901]` vs. `Fuel Flow Engine Torque [1615]`, configure cat-safe **positive** `Shiftcut Retard Angle` at high load (`≥ 63 kPa`), verify high-load clamping in `Dodge 8HP Torque Adjust`, and align WOT `Dodge 8HP Shift Target Table` RPMs to your powerband and gear-ratio drops.
+   - **Manual Transmissions (e.g., V160 / T56 / CD009):** Verify clutch-in coasting / overrun fuel-cut exit smoothness (`Disable Spd` & `Ramp Time`), shift-cut / flat-foot shifting (cat-safe if catted!), and boost-by-gear traction limits.
+6. **Step 6 — Final Failsafes & Cruise Control PID:** Once VE is dialed, tighten `Lambda min/max corr` (especially under high load/boost so a failed wideband can never pull fuel at WOT), and tune `Cruise PID P / I / D` + `Cruise MaxTPS` (if equipped) against logged `SET` engagements.
 
 ---
 
