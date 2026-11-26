@@ -1,7 +1,7 @@
 {
   "name": "maxxecu-tuning",
   "displayName": "MaxxECU MTune Universal Log & Calibration Analyzer",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "logo": "assets/logo.svg",
   "description": "Platform-agnostic MaxxECU MTune tuning co-pilot for NA and forced-induction builds (2JZ-GTE, LS, K-series, BMW, rotary, etc.). Parses .MaxxECU-Zip-log, .MaxxECU-log, .maxxlog, .csv, and .MaxxECU-save natively on Windows; validates vehicle configuration against MTune settings; computes damped VE/warmup/AE/boost/knock/idle/Cruise PID recommendations; and audits CAN transmissions including Dodge/BMW 8HP.",
   "suggestedPrompts": [
