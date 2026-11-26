@@ -42,7 +42,7 @@
 | `247` | Fuel temperature | °C |
 | `273` | Fuel load primary | % |
 | `311` | User table 2 (commonly custom TPS×MAP blended Load) | Load units |
-| `479` / `488` | Knock correction / Knock Count | ° / # |
+| `479` / `488` / `655` | `Knock correction` / `Knock Count` / `Last knock cylinder` | ° / # / cyl (**Primary active knock channels!**) |
 | `499` | Primary fuel pressure | kPa |
 | `562` / `563` / `818` | Idle RPM error / Idle ctrl duty Air / Idle Target RPM | RPM / % / RPM |
 | `664` / `665` / `806` | Fueling Target Error Bank A / Bank B / Total Fueling Target Error | % |
@@ -134,11 +134,11 @@ MTune channel names vary slightly across firmware versions and CSV export locale
 | `904` / `985` | `Dodge 8HP Target Gear` / `Delayed Gear` | Active commanded & actual gear (`-3`=Park, `-1`=Rev, `1..8`=Fwd) |
 | `905` | `Dodge 8HP Last Shift Time` | Shift duration in ms (`~300–500 ms` crisp under load; `>700–900 ms` at WOT suggests weak torque cut or low clamping pressure) |
 | `906` | `Dodge 8HP Converter Lockup` | `0/1`=Open, `2`=Slipping, `3`=Full TCC Lockup |
-| `912` / `920` | `Drive Mode` / `Shift Status` | Active Z-slice & X-column of `Dodge 8HP Torque Adjust` (`920`: `0`=In-gear, `1`=Downshift, `2`=Upshift) |
+| `910` / `912` / `920` | `Transmission Mode` / `Drive Mode` / `Shift Status` | `910`: `4`=Auto, `5`=Manual; `912`: active Z-slice; `920`: `0`=In-gear, `2`=Upshift, `3`=Downshift |
 | `1004` | `Transmission Oil Temp` | Useful full-warmup gate (`>= 48.9°C / 120°F`) when engine oil temp is absent |
-| `1615` | `Fuel Flow Engine Torque (Nm)` | Independent fuel-flow engine torque cross-check vs. CAN `901` |
+| `1614` / `1615` | `Fuel Flow Engine Power (hp)` / `Torque (Nm)` | Independent fuel-flow engine HP/TQ cross-check vs. CAN `901` (conservative ~WHP-equivalent; crosses at 5,252 RPM) |
 
-### Dodge 8HP70 Gear Ratios & Shift-Drop Reference
+### ZF 8HP70 Gear Ratios & Shift-Drop Reference
 | Gear | Ratio | Upshift Ratio Drop | Notes |
 | :--- | :---: | :---: | :--- |
 | `1` | `4.714` | `1 -> 2`: **`33.3%`** | Large drop — benefits from shifting slightly past peak HP |
@@ -149,7 +149,10 @@ MTune channel names vary slightly across firmware versions and CSV export locale
 | `6` | `1.000` | `6 -> 7`: `16.1%` | Very tight — keep safely below rev limiter / valve spring float |
 | `7` / `8` | `0.839` / `0.667` | — | Highway overdrive gears |
 
-- **`Shiftcut Retard Angle` Sign Convention:** Enter **positive** degrees (`10`, `15`, `20`). MaxxECU subtracts positive values from base ignition timing during active shiftcut and ramps back cleanly via `Shiftcut Retard BackTime`.
+### Verified ZF 8HP Gen1 (MaxxECU MAPS) Calibration Gotchas
+- **`Shiftcut Retard Angle` Sign Convention & Mid-Throttle Breakup Warning:** Positive values (`10`, `15`, `20`) subtract from base ignition timing during shiftcut. **CRITICAL:** Because the Y-axis is **MAP (`[20]`)** and large-bore NA DBW throttle bodies reach `95–97 kPa` at only `50–60%` pedal, populating `Shiftcut Retard Angle` at `63–101 kPa` while `ShiftCut Drop Ign Table` / `ShiftCut Drop Fuel Table` (`Shiftcut Output = 3`) are already active stacks `-15°..-18°` spark retard on top of active ignition/fuel cuts for `400–550 ms` — causing severe mid-throttle shift breakup! Keep `Shiftcut Retard Angle = 0°` when `ShiftCut Drop Ign/Fuel` is already active on NA engines.
+- **`Dodge 8HP Shift Strategy = 0` & MAPS Lead Offset:** On MAPS-flashed Gen1 TCUs, `Shift Strategy = 0` is already active **MaxxECU TCU MAPS (`1500–9000 rpm`)**. Actual Auto WOT shifts consistently complete **`~250–385 RPM` below** the `Dodge 8HP Shift Target Table` cell value (tracking edits 1-to-1). Measure actual Auto shift RPM in a log, add the empirical lead to the `90%` row, and keep the highest cell strictly below `Revlimit RPM`.
+- **`Dodge 8HP Automatic Upshift Offset`:** Applies **ONLY to Manual Mode rev-limit protection** (`Revlimit RPM - Offset`), NOT Auto Drive Mode!
 
 ---
 
@@ -159,11 +162,14 @@ MTune channel names vary slightly across firmware versions and CSV export locale
 | :--- | :--- | :--- |
 | `151` / `152` / `153` | `Idle PID P` / `I` / `D` | Watch `I` burying at `-350..-500` when `RadFan`/`AC` open-loop adders are active while rolling |
 | `204` / `206` | `Main throttle 1 position` / `Main pedal position` | DBW idle blade maps linearly: `DBW_Min + (AirDuty/100) * (DBW_Max - DBW_Min)` |
-| `411` / `702` | `GPO out 3 (Radiator Fan 1)` / `AC Active` | Common auxiliary load triggers; `411` can drive `IdleCtrl User Duty Adjust` Y-axis |
+| `411` / `702` | `GPO out 3 (Radiator Fan 1)` / `AC Active` | Common auxiliary load triggers; `411` drives `IdleCtrl User Duty Adjust` Y-axis |
 | `524` | `Internal out 1 (Gear Idle)` | `0`=Park/Neutral, `1`=In-Gear row selector for `Idle OpenloopDutyTable` |
-| `570` / `571` | `CruiseCtrl Locked Speed` / `Filtered Speed` | `571` quantizes in `~1 km/h` steps — keep Cruise `D Gain` moderate to prevent twitchiness |
+| `570` / `571` | `CruiseCtrl Locked Speed` / `Filtered Speed` | `571` quantizes in `~1 km/h` steps — keep Cruise `D Gain` moderate (`5–6`) to prevent twitchiness |
 | `595`–`599` | `CruiseCtrl P/I/D Term`, `Target Pos`, `State` | `Target Pos [598]` drives DBW blade `1:1`; must exceed DBW idle floor before blade opens |
 
+- **`RadiatorFan Delay` Firmware Quirk:** `RadiatorFan Delay` delays ONLY closing the physical fan relay (`[411]`), **NOT** `Idle RadFan Duty Up`! Keep it at `0.5 s` so `IdleCtrl User Duty Adjust` (`Y = [411]`) sees `Fan = 100` immediately and doesn't suffer a multi-second rolling air blind spot.
+- **`Idle closedloop Disable Spd` + `IdleCtrl User Duty Adjust` Synergy:** Once a 10-pt `IdleCtrl User Duty Adjust` curve (`VSS × Fan`) cancels rolling fan duty to `0%` by `~20 mph`, lowering `Idle closedloop Disable Spd` to `~4.8 km/h (3 mph)` prevents CL idle from winding down to `Min Pos` during braking decel (eliminating `550–600 RPM` stop dips).
+- **`Idle closedloop disable TPS`:** Raise from default `0.5%` → `1.5%` so lightly brushing the pedal while CL idle is rescuing a Park→Drive dip doesn't abort ignition/air rescue and cause an instant stall.
 - **Legacy `Idle AntiStall Enable`:** Deprecated in MTune `1.116+`; idle dip spark rescue is handled natively by `IdleLockAngle Table` (`IdleLockAngle Table Enable = 1`).
 
 ---
