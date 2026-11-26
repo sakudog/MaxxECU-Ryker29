@@ -1,0 +1,13 @@
+# OS & Editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Never accidentally commit personal ECU tunes or datalogs
+*.MaxxECU-save
+*.MaxxECU-Zip-log
+*.MaxxECU-Zip.log
+*.MaxxECU-log
+*.maxxlog
+*.csv
+*.tsv
