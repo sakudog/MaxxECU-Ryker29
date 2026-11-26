@@ -18,6 +18,26 @@ For detailed MaxxECU fuel model formulas, MTune axis IDs, channel mappings, and 
 
 ## Workflow
 
+### Step 0: Vehicle Configuration Intake & MTune Cross-Check (ALWAYS DO FIRST ON A NEW BUILD)
+This skill is **platform-agnostic** (works equally well for a single-turbo 2JZ-GTE Supra, an LS-swapped OBS truck, a K24, a BMW S54/N54, etc.). Before giving tuning recommendations on a new build, gather (or confirm) the 6 physical configuration blocks from [VEHICLE_PROFILE.md](../../../VEHICLE_PROFILE.md) and **cross-check every detectable item directly against the user's `.MaxxECU-save`**:
+
+1. **Engine Configuration:** Cylinders, displacement, NA vs. turbo/supercharged (target boost & WG spring), bore/stroke, compression ratio, cam specs, DBW E-Throttle vs. cable TB + IACV, redline.
+   - *Cross-check in `.MaxxECU-save`:* `Engine Cylcount`, `Engine Volume`, `KnockCtrl Diameter` (bore in mm), `RevLimit`, VE/Ign Load axis ceiling (`~101 kPa` NA vs. `200–400 kPa` boosted), `DBW` vs. stepper/PWM IAC settings.
+2. **Fuel System Configuration:** Pump gas octane vs. E85 / Flex Fuel, injector model & rated flow @ 3 bar, fuel pump(s), base rail pressure & 1:1 manifold-referenced FPR vs. fixed returnless, fuel pressure sensor installed?, single vs. dual wideband.
+   - *Cross-check in `.MaxxECU-save`:* `Fuel Injflow`, `Fuel Injdeadtime`, `Fuel pressureadj`, `Multiply Lambda = 1`, `DualBankO2`, Flex Fuel / Ethanol sensor & blend tables.
+3. **Exhaust System Configuration:** Turbo manifold/downpipe vs. headers, **catalytic converters vs. catless**, wideband sensor placement (pre-cat collector / post-turbo downpipe / post-cat).
+   - *Why it matters:* Cat-equipped builds MUST avoid aggressive ignition-only misfire cuts (shiftcut, rev limiter, overrun pops) that dump raw unburned fuel into hot cats — favor **ignition retard** or clean **fuel+ign cuts** instead!
+4. **Transmission Configuration:** Manual (clutch type) vs. CAN Automatic (Dodge/BMW ZF 8HP70/8HP90, DCT, DSG) vs. hydraulic auto (4L80E, TH400) + torque converter stall RPM if automatic.
+   - *Cross-check in `.MaxxECU-save`:* `Dodge 8HP TCU type`, `DCT`/`DSG`, or `TransCtrl` settings. **Adapt the audit to the actual transmission:** run 8HP shift/torque/TCC checks ONLY on 8HP builds; on manual turbo cars, focus on clutch-in anti-stall/coasting, flat-foot/shift-cut, and boost-by-gear!
+5. **Rear Gear Ratio, Tire Diameter & Vehicle Weight:** Informs gear-drop WOT shift RPM math, low-RPM lugging zones, and traction / boost-by-gear limits.
+6. **Cooling Fan Control Type (`PWM Soft-Start` vs. `On/Off Relay`) & Electrical Loads:**
+   - *Cross-check in `.MaxxECU-save`:* `Radiatorfan PWM` vs. GPO on/off fan outputs, `Fan Ctrl Temp / Temp2`, `RadiatorFan Delay`, `Idle RadFan Duty Up`, `Idle AC Duty Up`.
+   - *Adapt strategy immediately:*
+     - **Relay-switched high-draw fans:** Expect transient voltage dip on relay close; protect `0 mph` idle with adequate `Idle RadFan Duty Up`, use `RadiatorFan Delay` (`8–10 s`) to prevent hot-restart flares, and scale rolling fan duty down via `IdleCtrl User Duty Adjust` (`VSS × Fan`) so closed-loop `I` doesn't wind deeply negative while driving.
+     - **PWM soft-start fans:** No relay inrush surge — `Idle RadFan Duty Up` only needs a modest steady-state bump (`~10–15%`) and rarely causes hot-start flares or rolling self-drive.
+
+If the user hasn't provided all 6 blocks yet, auto-extract everything visible from their `.MaxxECU-save` first, flag any detected mismatches, and ask concisely for only the missing physical details (e.g., cats vs. catless, PWM vs. relay fans, cam/octane/rear gear).
+
 ### Step 1: Parse the Log and/or Calibration File
 Run the bundled analyzer on the uploaded or referenced file:
 
