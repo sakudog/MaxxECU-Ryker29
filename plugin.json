@@ -1,13 +1,13 @@
 {
   "name": "maxxecu-tuning",
-  "displayName": "MaxxECU MTune Log, Calibration & 8HP Analyzer",
-  "version": "1.1.0",
+  "displayName": "MaxxECU MTune Universal Log & Calibration Analyzer",
+  "version": "1.2.0",
   "logo": "assets/logo.svg",
-  "description": "Parse MaxxECU MTune datalogs (.MaxxECU-Zip-log, .MaxxECU-log, .maxxlog, .csv) and calibration files (.MaxxECU-save) natively on Windows to compute steady-state VE corrections, generate XML-verified .MaxxECU-save revisions, and audit fuel, ignition, knock, cold-start warmup, DBW idle & Fan-by-VSS curves, Cruise Control PID, and Dodge 8HP70/8HP90 CAN shift/torque setups.",
+  "description": "Platform-agnostic MaxxECU MTune tuning co-pilot for NA and forced-induction builds (2JZ-GTE, LS, K-series, BMW, rotary, etc.). Parses .MaxxECU-Zip-log, .MaxxECU-log, .maxxlog, .csv, and .MaxxECU-save natively on Windows; validates vehicle configuration against MTune settings; computes damped VE/warmup/AE/boost/knock/idle/Cruise PID recommendations; and audits CAN transmissions including Dodge/BMW 8HP.",
   "suggestedPrompts": [
-    "Review this MaxxECU MTune datalog and give me VE table and tuning recommendations",
-    "Audit my .MaxxECU-save tune file for fueling, spark, DBW idle, and safety limits",
-    "Review my Dodge 8HP70/8HP90 shift tables, torque model, and WOT shift cuts",
-    "Analyze my cold-start warmup log, DBW idle behavior, and Cruise Control PID"
+    "Audit my MaxxECU .MaxxECU-save and datalog against my vehicle profile and build a tuning plan",
+    "Review this MaxxECU datalog for VE table corrections, knock, boost/WOT fueling, and safety cuts",
+    "Diagnose my idle stability, electric fan inrush (PWM vs. relay), cold-start warmup, or Cruise PID",
+    "Audit my CAN transmission (8HP/DCT/DSG) shift tables, torque model, and WOT shift cuts"
   ]
 }
