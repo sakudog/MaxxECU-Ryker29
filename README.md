@@ -39,4 +39,12 @@ git -C "$env:USERPROFILE\.gemini\config\plugins\maxxecu-tuning" pull
 - Read **[QUICKSTART.md](./QUICKSTART.md)** for full tool usage, standalone PowerShell CLI commands, and the 6-step tuning workflow.
 - Copy the blank template in **[VEHICLE_PROFILE.md](./VEHICLE_PROFILE.md)** (includes filled-in **2JZ-GTE Supra** and **LS-Swapped OBS Truck** examples) into your first chat.
 
+---
+
+## Example Telemetry Visuals Generated From Native `.MaxxECU-Zip-log` Files
+
+![WOT Pull Dyno & Full Telemetry](./docs/showcase/LS3_ZF8HP70_WOT_Dyno_Telemetry.png)
+
+![Cold-Start Warmup, Cooling Fans, VSS & Gear Shifts](./docs/showcase/LS3_ZF8HP70_FullWarmup_Temps_Fans_VSS.png)
+
 > **Safety Disclaimer:** Always inspect every generated `.MaxxECU-save` revision in MTune using **File → Compare File** before flashing. Never flash someone else's tune file onto a different build.
