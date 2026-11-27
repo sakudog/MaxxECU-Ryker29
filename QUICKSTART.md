@@ -43,14 +43,25 @@ git -C "$env:USERPROFILE\.gemini\config\plugins\maxxecu-tuning" pull
 
 ## 2. How to Use the Tools Included
 
+### Recommended Project Workspace Layout
+Keep each build easy to inspect by organizing your vehicle's project folder (and any Google Drive backup folder) into three clean subfolders:
+
+```text
+<project-folder>\
+├── LOGS\        <-- Drop MTune datalogs here (.MaxxECU-Zip-log, .MaxxECU-log, .maxxlog, .csv)
+├── TUNES\       <-- All .MaxxECU-save tunes (baseline, generated revisions, Golden tune)
+└── ARTIFACTS\   <-- Requested outputs that are not MTune files (PNG graphs, TSV/CSV exports, reports)
+```
+
 ### Tool 1: AI Tuning Co-Pilot (Antigravity Chat — Primary Workflow)
 You do **not** have to run scripts manually. Once the plugin is enabled:
-1. In MTune, save your current ECU calibration (**File → Save As** → `.MaxxECU-save`) and save your datalog as a **`.MaxxECU-Zip-log`** (best format — bundles both the log, sample rate metadata, and exact embedded tune breakpoints!).
-2. Start a new Antigravity chat, drag-and-drop your `.MaxxECU-save` and `.MaxxECU-Zip-log` into the chat, and paste the **Starter Prompt** from Section 3 below.
+1. In MTune, save your current ECU calibration (**File → Save As** → `.MaxxECU-save` into `\TUNES`) and save your datalog as a **`.MaxxECU-Zip-log`** into `\LOGS` (best format — bundles both the log, sample rate metadata, and exact embedded tune breakpoints!).
+2. Start a new Antigravity chat, drag-and-drop your `.MaxxECU-save` and `.MaxxECU-Zip-log` into the chat (or drop them into `\TUNES` and `\LOGS`), and paste the **Starter Prompt** from Section 3 below.
 3. For each revision, the agent will:
    - Parse your log and tune automatically using `parse_maxxecu.ps1`
    - Report safety flags first (lean WOT, knock, fuel pressure, IDC, dual-bank split, battery sag)
-   - Generate an uploadable `.MaxxECU-save` revision (or MTune copy-paste table) with a **verified node-by-node XML diff**
+   - Save each new `.MaxxECU-save` revision into `\TUNES` with a **verified node-by-node XML diff**
+   - Save telemetry graphs, table exports, and reports into `\ARTIFACTS`
    - Optionally sync every revision and cell delta into your Google Sheet
 
 ### Tool 2: Standalone PowerShell Log & Tune Analyzer (`parse_maxxecu.ps1`)
@@ -59,23 +70,23 @@ You can also run the native Windows C#/PowerShell parser directly from PowerShel
 ```powershell
 # Analyze a .MaxxECU-Zip-log (auto-unpacks embedded tune + datalog)
 powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\.gemini\config\plugins\maxxecu-tuning\skills\maxxecu-mtune-tuning\scripts\parse_maxxecu.ps1" `
-  -Path "C:\path\to\your_log.MaxxECU-Zip-log"
+  -Path "C:\path\to\project\LOGS\your_log.MaxxECU-Zip-log"
 
 # Analyze a standalone .MaxxECU-log / .csv paired with a separate .MaxxECU-save
 powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\.gemini\config\plugins\maxxecu-tuning\skills\maxxecu-mtune-tuning\scripts\parse_maxxecu.ps1" `
-  -Path "C:\path\to\your_log.csv" `
-  -TunePath "C:\path\to\your_tune.MaxxECU-save" `
+  -Path "C:\path\to\project\LOGS\your_log.csv" `
+  -TunePath "C:\path\to\project\TUNES\your_tune.MaxxECU-save" `
   -MinClt 80 -MinHits 5 -ApplyFactor 0.65
 
 # Standalone calibration-only audit (dump VE, Lambda, and Ignition tables)
 powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\.gemini\config\plugins\maxxecu-tuning\skills\maxxecu-mtune-tuning\scripts\parse_maxxecu.ps1" `
-  -Path "C:\path\to\your_tune.MaxxECU-save" -DumpTables
+  -Path "C:\path\to\project\TUNES\your_tune.MaxxECU-save" -DumpTables
 
-# Export MTune clipboard-ready updated VE table (.tsv) and normalized CSV
+# Export MTune clipboard-ready updated VE table (.tsv) and normalized CSV into ARTIFACTS
 powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\.gemini\config\plugins\maxxecu-tuning\skills\maxxecu-mtune-tuning\scripts\parse_maxxecu.ps1" `
-  -Path "C:\path\to\your_log.MaxxECU-Zip-log" `
-  -ExportVeTable "C:\path\to\updated_ve.tsv" `
-  -ExportCsv "C:\path\to\normalized_log.csv"
+  -Path "C:\path\to\project\LOGS\your_log.MaxxECU-Zip-log" `
+  -ExportVeTable "C:\path\to\project\ARTIFACTS\updated_ve.tsv" `
+  -ExportCsv "C:\path\to\project\ARTIFACTS\normalized_log.csv"
 ```
 
 **Useful CLI Flags:**

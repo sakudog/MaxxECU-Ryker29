@@ -9,6 +9,7 @@ A platform-agnostic AI street and dyno tuning co-pilot for **MaxxECU MTune** —
 - **Forced Induction & NA WOT Diagnostics:** Audits boost target vs. actual MAP, WGDC saturation, IAT heat soak, knock retard, injector duty cycle, and cat-safe vs. catless cut strategies.
 - **Idle, Fan Strategy (PWM vs. Relay), Cold-Start & Cruise PID:** Adapts idle/fan guidance to your exact hardware (DBW E-Throttle vs. cable IACV, PWM soft-start fans vs. high-inrush relay fans, `RadiatorFan Delay` pre-engagement behavior, `IdleCtrl User Duty Adjust` by VSS paired with `~3 mph` `Disable Spd`, `Disable TPS` pedal-brush protection, and pure-PID Cruise Control).
 - **Transmission-Aware Auditing:** Adapts automatically for Manual (clutch-in coasting, shift-cut, boost-by-gear) or CAN Automatics (ZF 8HP70/8HP90 Gen1 MAPS shift lead calibration, `Automatic Upshift Offset` manual-mode protection, torque clamping, `Shiftcut Retard` vs. `ShiftCut Drop Ign/Fuel` conflict prevention, and TCC lockup).
+- **Clean Project Workspace Layout (`\LOGS`, `\TUNES`, `\ARTIFACTS`):** Automatically organizes every vehicle build (locally and in optional Google Drive backups) into `\LOGS` for datalogs, `\TUNES` for `.MaxxECU-save` calibrations, and `\ARTIFACTS` for telemetry graphs, exports, and reports.
 - **XML-Diff Verified `.MaxxECU-save` Generation:** Safely edits `.MaxxECU-save` files (preserving UTF-8 no-BOM + `encoding="utf-16"` header) and runs a mandatory node-by-node XML diff before you inspect in MTune via **File → Compare File**.
 
 ---

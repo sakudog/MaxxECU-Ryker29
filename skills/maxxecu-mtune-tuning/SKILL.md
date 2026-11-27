@@ -16,6 +16,14 @@ This skill parses MaxxECU MTune datalogs (`.MaxxECU-Zip-log`, `.MaxxECU-log`, `.
 
 For detailed MaxxECU fuel model formulas, MTune axis IDs, channel mappings, and tuning targets, read [mtune_tuning_reference.md](./references/mtune_tuning_reference.md) as needed.
 
+## Workspace Directory Convention (ALWAYS USE FOR EVERY BUILD)
+Keep every vehicle's project folder clean and inspectable by organizing files into three subfolders under the build's project directory (e.g., `<project>\`):
+- **`\LOGS`** — All incoming and archived MTune datalogs (`.MaxxECU-Zip-log`, `.MaxxECU-log`, `.maxxlog`, `.csv`).
+- **`\TUNES`** — All `.MaxxECU-save` calibration files (baseline deposits, generated revisions, and final/Golden tunes).
+- **`\ARTIFACTS`** — Any requested outputs that are not an MTune tune file (telemetry graphs `.png`, TSV/CSV table exports, Google Sheets batch `.json`, and markdown/HTML reports).
+
+When creating a new vehicle workspace (or mirroring a build folder to Google Drive), always initialize `LOGS`, `TUNES`, and `ARTIFACTS` and save outputs into their matching subfolder.
+
 ## Workflow
 
 ### Step 0: Vehicle Configuration Intake & MTune Cross-Check (ALWAYS DO FIRST ON A NEW BUILD)
